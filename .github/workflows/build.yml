@@ -16,8 +16,8 @@ jobs:
     - name: Unzip Project Files
       run: |
         unzip BedrockProxy.zip -d extracted_project
-        # Find where gradlew is hiding and move everything to the root
-        PROJ_DIR=$(find extracted_project -name "gradlew" -exec dirname {} \; | head -n 1)
+        # Find where your build.gradlew file is hiding
+        PROJ_DIR=$(find extracted_project -name "build.gradlew" -exec dirname {} \; | head -n 1)
         if [ ! -z "$PROJ_DIR" ]; then
           mv $PROJ_DIR/* . || true
           mv $PROJ_DIR/.* . || true
@@ -29,8 +29,11 @@ jobs:
         java-version: '17'
         distribution: 'zulu'
 
-    - name: Change wrapper permissions
-      run: chmod +x gradlew || true
+    - name: Prepare Wrapper Permissions
+      run: |
+        # Copying your file to standard 'gradlew' so the system runs it correctly
+        cp build.gradlew gradlew || true
+        chmod +x gradlew || true
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
