@@ -16,9 +16,8 @@ jobs:
     - name: Unzip Project Files
       run: |
         unzip BedrockProxy.zip -d extracted_project
-        # Move files up if they are nested inside a subfolder
-        find extracted_project -maxdepth 2 -name "gradlew" -exec dirname {} \; > project_dir.txt
-        PROJ_DIR=$(cat project_dir.txt)
+        # Find where gradlew is hiding and move everything to the root
+        PROJ_DIR=$(find extracted_project -name "gradlew" -exec dirname {} \; | head -n 1)
         if [ ! -z "$PROJ_DIR" ]; then
           mv $PROJ_DIR/* . || true
           mv $PROJ_DIR/.* . || true
@@ -31,14 +30,10 @@ jobs:
         distribution: 'zulu'
 
     - name: Change wrapper permissions
-      run: |
-        find . -name "gradlew" -exec chmod +x {} \;
+      run: chmod +x gradlew || true
 
     - name: Build Debug APK
-      run: |
-        GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
-        cd $(dirname "$GRADLEW_PATH")
-        ./gradlew assembleDebug
+      run: ./gradlew assembleDebug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
